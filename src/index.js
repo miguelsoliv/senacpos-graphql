@@ -1,64 +1,106 @@
 const { ApolloServer, gql } = require('apollo-server')
 const Sequelize = require('./database')
-const Book = require('./models/book')
+const User = require('./models/user')
+const RegisteredTime = require('./models/registeredTime')
 
 const typeDefs = gql`
-    type Book {
+    enum RoleEnum {
+        ADMIN
+        USER
+    }
+
+    type User {
         id: ID!
-        title: String!
-        ISBN: Int!
-        publicationDate: String!
+        name: String!
+        email: String!
+        password: String!
+        role: RoleEnum!
+    }
+
+    type RegisteredTime {
+        id: ID!
+        user: User!
+        timeRegistered: String!
     }
 
     type Query {
-        allBooks: [Book]
+        allUsers: [User]
+        allRegisteredTimes: [RegisteredTime]
     }
 
     type Mutation {
-        createBook(data: CreateBookInput): Book
-        updateBook(id: ID! data: UpdateBookInput): Book
-        deleteBook(id: ID!): Boolean
+        createUser(data: CreateUserInput): User
+        updateUser(id: ID! data: UpdateUserInput): User
+        deleteUser(id: ID!): Boolean
+
+        createRegisteredTime(data: CreateRegisteredTimeInput): RegisteredTime
     }
 
-    input CreateBookInput {
-        title: String!
-        ISBN: Int!
-        publicationDate: String!
+    input CreateUserInput {
+        name: String!
+        email: String!
+        password: String!
+        role: RoleEnum!
     }
 
-    input UpdateBookInput {
-        title: String
-        ISBN: Int
-        publicationDate: String
+    input UpdateUserInput {
+        name: String
+        email: String
+        password: String
+        role: RoleEnum
+    }
+
+    input CreateRegisteredTimeInput {
+        user: CreateUserInput!
+        timeRegistered: String!
     }
 `
 
 const resolver = {
     Query: {
-        allBooks() {
-            return Book.findAll()
+        allUsers() {
+            return User.findAll()
+        },
+        allRegisteredTimes() {
+            return RegisteredTime.findAll({ include: [User] })
         }
     },
     Mutation: {
-        async createBook(parent, body, context, info) {
-                return Book.create(body.data)
+        async createUser(_parent, body, _context, _info) {
+            //body.data.password = await bcrypt.hash(body.data.password, 10)
+            return User.create(body.data)
         },
-        async updateBook(parent, body, context, info) {
-            const book = await Book.findOne({
+
+        async updateUser(_parent, body, _context, _info) {
+            const user = await User.findOne({
                 where: { id: body.id }
             })
-            if (!book) {
-                throw new Error('Livro não encontrado')
-            }
-            const updatedBook = await book.update(body.data)
-            return updatedBook
+            if (!user) throw new Error('Usuário não encontrado')
+            const updatedUser = await user.update(body.data)
+            return updatedUser
         },
-        async deleteBook(parent, body, context, info) {
-            const book = await Book.findOne({
+
+        async deleteUser(_parent, body, _context, _info) {
+            const user = await User.findOne({
                 where: { id: body.id }
             })
-            await book.destroy()
+            await user.destroy()
             return true
+        },
+
+        async createRegisteredTime(_parent, body, _context, _info) {
+            if (body.data.user) {
+                const [createdUser, created] =
+                    await User.findOrCreate(
+                        { where: body.data.user }
+                    )
+                body.data.user = null
+                const registeredTime = await RegisteredTime.create(body.data)
+                await registeredTime.setUser(createdUser.get('id'))
+                return registeredTime.reload({ include: [User] })
+            } else {
+                return RegisteredTime.create(body.data, { include: [User] })
+            }
         }
     }
 }
@@ -71,12 +113,10 @@ const server = new ApolloServer({
             headers: req.headers
         }
     }
-});
-
+})
 
 Sequelize.sync().then(() => {
-    server.listen()
-        .then(() => {
-            console.log('Servidor rodando')
-        })
+    server.listen().then(() => {
+        console.log('Servidor rodando')
+    })
 })
