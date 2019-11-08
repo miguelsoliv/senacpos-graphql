@@ -3,6 +3,7 @@
 - Create/Update package.json: `npm init`
 - Installing dependencies: `npm i`
 - Starting server: `node src/index.js` ( http://localhost:4000/ )
+- Authenticate: copy the token from the 'signin' method and paste it into the HTTP Headers section in the following format: `{ "Authorization": "Bearer [ your token ]" }`
 
 ## Examples
 
@@ -49,10 +50,10 @@
   mutation {
     createUser(
       data: {
-        name: "Sample User 2"
-        email: "sample2@email.com"
-        password: "54321"
-        role: ADMIN
+        name: "Sample User"
+        email: "sample@email.com"
+        password: "1234"
+        role: USER
       }
     ){
       id
@@ -66,16 +67,16 @@
 </details>
 
 <details>
-  <summary>Create registered time</summary>
+  <summary>Create registered time (USER only)</summary>
   
   ```
   mutation {
     createRegisteredTime(
       data: {
         user: {
-          name: "Sample User 3"
-          email: "sample3@email.com"
-          password: "13245"
+          name: "Sample User"
+          email: "sample@email.com"
+          password: [ your encrypted password ]
           role: USER
         }
         timeRegistered: "2005-10-08"
@@ -124,6 +125,28 @@
   ```
 </details>
 
-Subscribe to user (onCreatedUser) (**TODO**)
+<details>
+  <summary>Sign in</summary>
+  
+  ```
+  mutation {
+    signin(
+      email: "sample@email.com"
+      password: "1234"
+    ) {
+      token
+      user {
+        role
+      }
+    }
+  }
+  ```
+</details>
 
-Sign in (**TODO**)
+<details>
+  <summary>Subscribe to user - onCreatedUser (ADMIN only)</summary>
+  
+  ```
+  
+  ```
+</details>
