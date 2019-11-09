@@ -49,6 +49,7 @@ const typeDefs = gql`
 
     type Subscription {
         onCreatedUser: User
+        onCreatedRegisteredTime: RegisteredTime
     }
 
     type PayloadAuth {
@@ -121,7 +122,11 @@ const resolver = {
             body.data.user = null
             const registeredTime = await RegisteredTime.create(body.data)
             await registeredTime.setUser(createdUser.get('id'))
-            return registeredTime.reload({ include: [User] })
+            const reloadedRegisteredTime = registeredTime.reload({ include: [User] })
+            pubSub.publish('createdRegisteredTime', {
+                onCreatedRegisteredTime: reloadedRegisteredTime
+            })
+            return reloadedRegisteredTime
         },
 
         async signin(_parent, body, _context, _info) {
@@ -142,6 +147,9 @@ const resolver = {
     Subscription: {
         onCreatedUser: {
             subscribe: () => pubSub.asyncIterator('createdUser')
+        },
+        onCreatedRegisteredTime: {
+            subscribe: () => pubSub.asyncIterator('createdRegisteredTime')
         }
     }
 }
