@@ -14,6 +14,11 @@ const typeDefs = gql`
         USER
     }
 
+    enum TypeEnum {
+        ENTRANCE
+        EXIT
+    }
+
     directive @auth(
         role: RoleEnum
     ) on OBJECT | FIELD_DEFINITION
@@ -30,6 +35,7 @@ const typeDefs = gql`
         id: ID!
         user: User!
         timeRegistered: String!
+        type: TypeEnum!
     }
 
     type Query {
@@ -72,8 +78,14 @@ const typeDefs = gql`
     }
 
     input CreateRegisteredTimeInput {
-        user: CreateUserInput!
+        user: CreateRegisteredTimeUserInput!
         timeRegistered: String!
+        type: TypeEnum!
+    }
+
+    input CreateRegisteredTimeUserInput {
+        id: ID
+        name: String
     }
 `
 
