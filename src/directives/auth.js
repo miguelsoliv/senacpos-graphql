@@ -32,6 +32,8 @@ class AuthDirective extends SchemaDirectiveVisitor {
                 const context = args[2]
                 const token = context.headers.authorization
 
+                if (!token) throw new AuthenticationError('Você não está autorizado')
+
                 const jwtData = jwt.decode(token.replace('Bearer ', ''))
                 const { id } = jwtData
 

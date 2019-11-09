@@ -1,4 +1,4 @@
-const { ApolloServer, gql, PubSub } = require('apollo-server')
+const { ApolloServer, gql, PubSub, AuthenticationError } = require('apollo-server')
 const Sequelize = require('./database')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
@@ -48,7 +48,7 @@ const typeDefs = gql`
     }
 
     type Subscription {
-        onCreatedUser: User @auth(role: ADMIN)
+        onCreatedUser: User
     }
 
     type PayloadAuth {
@@ -152,7 +152,15 @@ const server = new ApolloServer({
     schemaDirectives: {
         auth: AuthDirective
     },
-    context({ req }) {
+    subscriptions: {
+        onConnect: async (connectionParams, webSocket) => {
+            const token = connectionParams.Authorization
+            if (!token) throw new AuthenticationError('Você não está autorizado')
+        }
+    },
+    context({ req, connection }) {
+        if (connection) return connection.context
+
         return {
             headers: req.headers
         }

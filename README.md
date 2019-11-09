@@ -144,9 +144,16 @@
 </details>
 
 <details>
-  <summary>Subscribe to user - onCreatedUser (ADMIN only)</summary>
+  <summary>Subscribe to user - onCreatedUser (Authenticated only)</summary>
   
   ```
-  
+  subscription {
+    onCreatedUser {
+      id
+      name
+      email
+      role
+    }
+  }
   ```
 </details>
