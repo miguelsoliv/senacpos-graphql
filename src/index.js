@@ -15,8 +15,8 @@ const typeDefs = gql`
     }
 
     enum TypeEnum {
-        ENTRANCE
-        EXIT
+        ENTRADA
+        SAIDA
     }
 
     directive @auth(
