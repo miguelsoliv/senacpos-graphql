@@ -41,6 +41,7 @@ const typeDefs = gql`
     type Query {
         allUsers: [User]
         allRegisteredTimes: [RegisteredTime]
+        filteredRegisteredTimes(idUser: String): [RegisteredTime]
     }
 
     type Mutation {
@@ -96,6 +97,12 @@ const resolver = {
         },
         allRegisteredTimes() {
             return RegisteredTime.findAll({ include: [User] })
+        },
+        filteredRegisteredTimes(_parent, args, body, _context, _info) {
+            RegisteredTime.findByPk(args.idUser, { include: [User] }).then(registeredTime => {
+                console.log(registeredTime.dataValues)
+                return registeredTime.dataValues
+            })
         }
     },
     Mutation: {
